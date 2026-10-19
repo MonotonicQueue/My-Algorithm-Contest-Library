@@ -1,0 +1,88 @@
+#include<bits/stdc++.h>
+#define pii pair<int,int>
+#define mk make_pair 
+#define fi first
+#define se second
+#define ll long long
+using namespace std;
+ll read(){
+	ll X = 0,r = 1;
+	char ch = getchar();
+	while(!isdigit(ch) && ch != '-') ch = getchar();
+	if(ch == '-') r = -1,ch = getchar();
+	while(isdigit(ch)) X = X*10+ch-'0',ch = getchar();
+	return X*r; 
+}
+const int N = 1<<10;
+const int M = 1e4+10;
+int n,m,k;
+int head[N],to[M],nxt[M],edge[M],tot;
+inline void add_edge(int u,int v,int w){
+	to[++tot] = v;
+	nxt[tot] = head[u];
+	head[u] = tot;
+	edge[tot] = w;
+}
+struct node{
+	int id,col;
+}a[N];
+bool cmp(node x,node y){
+	return x.col < y.col;
+}
+int f[N][N],g[N];
+queue<int> q;
+bool vis[N];
+void spfa(int S){
+	while(!q.empty()){
+		int x = q.front(); q.pop();
+		vis[x] = false;
+		for(int i=head[x];i;i=nxt[i]){
+			int y = to[i];
+			if(f[y][S] > f[x][S]+edge[i]){
+				f[y][S] = f[x][S]+edge[i];
+				if(!vis[y]) q.push(y),vis[y] = true;
+			}
+		}
+	}
+}
+int solve(int cnt){
+	for(int S=1;S<(1<<cnt);S++){
+		for(int i=1;i<=n;i++){
+			for(int T=S&(S-1);T;T=(T-1)&S)
+				f[i][S] = min(f[i][S],f[i][T]+f[i][S^T]);
+			if(f[i][S] < 1e9) q.push(i),vis[i] = true;
+		}
+		spfa(S);
+	}
+	int ans = 1e9;
+	for(int i=1;i<=n;i++) ans = min(ans,f[i][(1<<cnt)-1]);
+	return ans;
+}
+int col[N];
+int main(){
+	n = read(); m = read(); k = read();
+	for(int i=1;i<=m;i++){
+		int u = read(),v = read(),w = read();
+		add_edge(u,v,w); add_edge(v,u,w);
+	}
+	for(int i=1;i<=k;i++)
+		a[i].col = read(),a[i].id = read();
+	sort(a+1,a+1+k,cmp);
+	int cnt = 0;
+	for(int i=1;i<=k;i++){
+		if(a[i].col != a[i-1].col) cnt++;
+		col[i] = cnt;
+	}
+	for(int i=1;i<(1<<cnt);i++){
+		memset(f,0x3f,sizeof(f));
+		int tot = 0;
+		for(int j=1;j<=k;j++)
+			if((i >> (col[j]-1)) & 1) f[a[j].id][1<<tot] = 0,tot++;
+		g[i] = solve(tot);
+	}
+	for(int i=1;i<(1<<cnt);i++)
+		for(int j=i&(i-1);j;j=(j-1)&i)
+			g[i] = min(g[i],g[j]+g[i^j]);
+	cout << g[(1<<cnt)-1];
+	return 0;
+}
