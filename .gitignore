@@ -2,3 +2,7 @@
 tempCodeRunnerFile.cpp
 .cph/
 .vscode/
+*.in
+*.out
+*.txt
+*.ans
